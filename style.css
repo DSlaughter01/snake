@@ -1,0 +1,28 @@
+.grid {
+    width: 500px;
+    height: 500px;
+    display: flex;
+    flex-wrap: wrap;
+    border: 1px solid black;
+}
+
+.square {
+    width: 25px;
+    height: 25px;
+}
+
+.border-square {
+    background-color: blue;
+}
+
+.body-square {
+    background-color: rgb(4, 75, 4);
+}
+
+.food-square {
+    background-color: rgb(110, 29, 29);
+}
+
+.head-square {
+    background-color: red;
+}
