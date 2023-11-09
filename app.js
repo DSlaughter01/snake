@@ -1,31 +1,25 @@
-// Create a function which moves the head and body to the right of the screen
-// Call this function every 100 ms
-// Create a function which ends the game when the snake hits the right
-// Create a function which creates food
-// Create a function which checks for collision of the head with the food
 document.addEventListener('DOMContentLoaded', () => {
 
+    // Board display elements
     let currentScore = 0;
     const scoreDisplay = document.getElementById("score");
     scoreDisplay.textContent = currentScore;
     const gridDisplay = document.getElementById("grid");
     const gridDistance = 20;
-    const squareCount = 400;
-    let snakeBodyLength = 0;
-
-    let squares;
-    let headSquareIdx = Math.floor(squareCount/2 - gridDistance/2);
+    const squareCount = gridDistance * gridDistance;
+    let squares;    
     let foodSquareIdx;
-    let bodySquares = [];
+
+    // Snake elements
+    let snakeBodyLength = 4;
+    let snakeSquares = [Math.floor(squareCount/2 - gridDistance/2)];
 
     // Direction, how many squares to advance
     const up = -gridDistance;
     const down = gridDistance;
     const left = -1;
     const right = 1;
-    
-    let currentDirection = right;
-    let newDirection;
+    let direction = right;
 
     let timerId;
 
@@ -40,11 +34,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Create the user and start moving right
     function createUser() {
-        squares[headSquareIdx].classList.replace('empty', 'head-square');
+        const headIdx = snakeSquares[snakeSquares.length - 1];
+        squares[headIdx].classList.replace('empty', 'head-square');
 
         for (let i = 1; i < snakeBodyLength + 1; i++) {
-            squares[headSquareIdx - i].classList.replace('empty', 'body-square');
-            bodySquares.push(headSquareIdx - i);
+            squares[headIdx - i].classList.replace('empty', 'body-square');
+            snakeSquares.unshift(headIdx - i);
         }
     }
     createUser();
@@ -58,17 +53,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     createFood();
 
-    // Check if the snake eats
-    function isEating() {
-        if (headSquareIdx == foodSquareIdx) {
-            squares[headSquareIdx].classList.remove('food-square');
+    // Check if the snake is eating
+    function isEating(headIdx) {
+
+        if (headIdx == foodSquareIdx) {
+            squares[headIdx].classList.remove('food-square');
             currentScore += 100;
             scoreDisplay.textContent = currentScore;
 
-            // Grow the body
-            bodySquares.push(squares[headSquareIdx - newDirection]);
-            squares[headSquareIdx - newDirection].classList.replace('empty', 'body-square');
-            
             createFood();
         }
     }
@@ -78,19 +70,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
         switch(e.key) {
             case 'ArrowLeft': {
-                currentDirection = left;
+                direction = left;
                 break;
                 }
             case 'ArrowRight': {
-                currentDirection = right;
+                direction = right;
                 break;
                 }
             case 'ArrowUp': {
-                currentDirection = up;
+                direction = up;
                 break;
             }
             case 'ArrowDown': {
-                currentDirection = down;
+                direction = down;
                 break;
             }
             default: {
@@ -101,13 +93,13 @@ document.addEventListener('DOMContentLoaded', () => {
     document.addEventListener('keydown', userInput);
 
     // Check if the snake collides with the wall
-    function checkCollisions() {      
+    function checkCollisions(headIdx) {      
 
         // Conditions for border collisions
-        let condRight = (currentDirection === right && headSquareIdx % gridDistance === gridDistance - 1);
-        let condUp = (currentDirection === up && headSquareIdx < gridDistance);
-        let condDown = (currentDirection === down && headSquareIdx > squareCount - gridDistance);
-        let condLeft = (currentDirection === left && headSquareIdx % gridDistance === 0); 
+        let condRight = (direction === right && headIdx % gridDistance === gridDistance - 1);
+        let condUp = (direction === up && headIdx < gridDistance);
+        let condDown = (direction === down && headIdx > squareCount - gridDistance);
+        let condLeft = (direction === left && headIdx % gridDistance === 0); 
 
         if (condRight || condUp || condDown || condLeft) {
             return true;
@@ -117,25 +109,31 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function moveSnake() {
-        // Can we apply directions to a certain division?
 
-        if (!checkCollisions()) {
+        let headIdx = snakeSquares[snakeSquares.length - 1];
+        console.log(headIdx);
+        const fat = isEating(headIdx);
+        if (!checkCollisions(headIdx)) {
 
-            // Move the head
-            squares[headSquareIdx].classList.remove('head-square');
-            headSquareIdx += currentDirection;
-            squares[headSquareIdx].classList.add('head-square');
-            isEating();
-
-            // Move the body
+            // If eating, don't remove tail
+            if (!fat) {
+                squares[snakeSquares[0]].classList.replace('body-square', 'empty');
+                snakeSquares.shift();      
+            }
+            
+            // If not eating, remove tail
+            squares[headIdx].classList.replace('head-square', 'body-square');
+            headIdx += direction;
+            squares[headIdx].classList.replace('empty', 'head-square');
+            snakeSquares.push(headIdx);
 
         } else {
             scoreDisplay.textContent = "GAME OVER";
             clearInterval(timerId);
         }
     }
-    timerId = setInterval(moveSnake, 500);
-
+    timerId = setInterval(moveSnake, 300);
+ 
 
     // Possible movement combinations
         // right --> up         right --> down
